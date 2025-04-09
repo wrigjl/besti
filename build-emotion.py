@@ -136,7 +136,7 @@ def process_image(model, fname, loader):
     return gram_matrices
 
 
-def process_emotion(model, emotion, loader):
+def process_emotion(model, emotion, loader, image_list):
     """Go through all of the images relating to "emotion" and
     compute the 'center' of that emotion"""
 
@@ -169,7 +169,7 @@ def process_emotion(model, emotion, loader):
                 name = gram[0]
                 result.append([name, torch.zeros(gram[1].size()).detach()])
 
-        print(f"{num_images+1} of {len(image_list)}")
+        print(f"{emotion} {num_images+1} of {len(image_list)}")
         for i, gram in enumerate(grams):
             assert gram[0] == result[i][0]
             result[i][1] = torch.add(result[i][1], gram[1])
@@ -185,9 +185,10 @@ def process_emotion(model, emotion, loader):
 
     return result
 
-def main(emotion):
+def emotion(emotion, image_list):
     """Initialize torch, build the model, the process an emotion's worth
     of images"""
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.set_default_device(device)
 
@@ -208,11 +209,22 @@ def main(emotion):
         [transforms.Resize(imsize), transforms.ToTensor()]
     )
 
-    res_list = process_emotion(model, emotion, loader)
+    res_list = process_emotion(model, emotion, loader, image_list)
     m = {}
     for name, tsr in res_list:
         m[name] = tsr.detach()
     torch.save(m, f"{emotion}.grams")
 
+def main():
+    with open("index.json", encoding='utf-8') as jfile:
+        image_list = json.load(jfile)
+        
+    emotions = set()
+    for _, d in image_list.items():
+        emotions.add(d['emotion'])
+
+    for d in emotions:
+        emotion(d, image_list)
+
 if __name__ == "__main__":
-    main("sadness")
+    main()
