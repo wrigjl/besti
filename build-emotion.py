@@ -24,6 +24,15 @@ def image_loader(image_name, loader, device=None):
     if device is None:
         device = torch.get_default_device()
     image = Image.open(image_name)
+    if image.mode == 'CMYK':
+        # The loader needs RGB channels
+        image = image.convert('RGB')
+    elif image.mode == 'RGBA':
+        # we need to squish out the alpha channel
+        bg = Image.new('RGBA', image.size, (255, 255, 255))
+        image = Image.alpha_composite(bg, image).convert('RGB')
+
+    image = image.resize((512, 512))
     # fake batch dimension required to fit network's input dimensions
     image = loader(image).unsqueeze(0)
     return image.to(device, torch.float)
@@ -52,8 +61,8 @@ class Normalization(nn.Module):
         # .view the mean and std to make them [C x 1 x 1] so that they can
         # directly work with image Tensor of shape [B x C x H x W].
         # B is batch size. C is number of channels. H is height and W is width.
-        self.mean = mean.clone().detach().view(-1, 1, 1)
-        self.std = std.clone().detach().view(-1, 1, 1)
+        self.mean = mean.clone().detach().view(-1, 1, 1).to(torch.get_default_device())
+        self.std = std.clone().detach().view(-1, 1, 1).to(torch.get_default_device())
 
     def forward(self, img):
         """normalize ``img``"""
@@ -128,6 +137,8 @@ def process_image(model, fname, loader):
     return a list of tuples. Each tuple is layer name [0] and the
     corresponding gram matrix for that layer [1]."""
     img = image_loader(fname, loader)
+    model.eval()
+    model.requires_grad_(False)
     model(img)
     gram_matrices = []
     for layer in model.children():
@@ -169,7 +180,8 @@ def process_emotion(model, emotion, loader, image_list):
                 name = gram[0]
                 result.append([name, torch.zeros(gram[1].size()).detach()])
 
-        print(f"{emotion} {num_images+1} of {len(image_list)}")
+        if num_images % 50 == 0:
+            print(f"{emotion} {num_images+1} of {len(image_list)}")
         for i, gram in enumerate(grams):
             assert gram[0] == result[i][0]
             result[i][1] = torch.add(result[i][1], gram[1])
@@ -193,8 +205,8 @@ def emotion(emotion, image_list):
     torch.set_default_device(device)
 
     cnn = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
-    cnn_normalization_mean = torch.FloatTensor([0.485, 0.456, 0.406])
-    cnn_normalization_std = torch.FloatTensor([0.229, 0.224, 0.225])
+    cnn_normalization_mean = torch.FloatTensor([0.485, 0.456, 0.406]).to(torch.get_default_device())
+    cnn_normalization_std = torch.FloatTensor([0.229, 0.224, 0.225]).to(torch.get_default_device())
 
     normalization = Normalization(cnn_normalization_mean, cnn_normalization_std)
 
@@ -206,7 +218,7 @@ def emotion(emotion, image_list):
 
     # scale imported image, transform it into a torch tensor
     loader = transforms.Compose(
-        [transforms.Resize(imsize), transforms.ToTensor()]
+        [transforms.Resize(imsize), transforms.CenterCrop(224), transforms.ToTensor()]
     )
 
     res_list = process_emotion(model, emotion, loader, image_list)
