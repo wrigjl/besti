@@ -109,12 +109,19 @@ parser.add_argument('--method', help='method to output: 1 2 or 3',
 parser.add_argument('--emotion', default='sadness')
 parser.add_argument('--eps', type=float, default=0.7)
 parser.add_argument('--steps', type=int, default=4)
+parser.add_argument('--model', default="Model12.h5", help="the model file to load")
 args = parser.parse_args()
 
 
 SIZE=260
-input = cv2.resize(cv2.imread(args.input_img), dsize=(SIZE, SIZE),
-                 interpolation=cv2.INTER_CUBIC)
+#input = cv2.resize(cv2.imread(args.input_img), dsize=(SIZE, SIZE),
+#                 interpolation=cv2.INTER_CUBIC)
+
+input1 = cv2.imread(args.input_img)
+# convert to RGB
+rgb = cv2.cvtColor(input1, cv2.COLOR_BGR2RGB)
+size = 260
+input = cv2.resize(rgb, dsize=(size, size), interpolation=cv2.INTER_CUBIC)
 
 #input = ((image + 1) / 2.0)*255 # This is doing preprocessing on the image based on the -1 to 1 input the training generator was made with
 # If the image is 0 to 255 already, then you can just use the image as-is
@@ -126,7 +133,8 @@ EPS = args.eps  #amount to disrupt the image by (roughly from 0 to 1)
 LABEL = class_indices[args.emotion] # Way to use the dictionary directly
 STEPS = args.steps  # number of times to iteratively run the perturbation (best to keep fairly low in single digits)
 
-MODEL = tf.keras.models.load_model("Model12.h5")
+
+MODEL = tf.keras.models.load_model(args.model)
 
 if args.method == 1:
   styleimg = FuncStep(FGSM,MODEL,input,LABEL,EPS, STEPS)
@@ -135,4 +143,10 @@ elif args.method == 2:
 elif args.method == 3:
   styleimg = FuncStep(FGMTEST2,MODEL,input,LABEL,EPS, STEPS)
 
-plt.imsave(args.output_img, styleimg / 255)
+#arr = np.array(styleimg)
+# 5) convert RGB → BGR for OpenCV
+bgr = cv2.cvtColor(styleimg, cv2.COLOR_RGB2BGR)
+# 6) write to disk
+success = cv2.imwrite(args.output_img, bgr)
+
+#plt.imsave(args.output_img, styleimg / 255)

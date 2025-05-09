@@ -240,7 +240,7 @@ def imshow(tensor, title=None):
         plt.pause(0.001)
 
     
-def transfer_emotion(image_name, emotion, style_layers):
+def transfer_emotion(image_name, emotion, style_layers, gramdir):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.set_default_device(device)
 
@@ -256,7 +256,9 @@ def transfer_emotion(image_name, emotion, style_layers):
 
     normalization = Normalization(cnn_normalization_mean, cnn_normalization_std)
 
-    grams = torch.load(f"{emotion}.grams")
+    if gramdir is None:
+        gramdir = "."
+    grams = torch.load(os.path.join(gramdir, f"{emotion}.grams"))
     model = build_model(cnn, normalization, grams, content_image,
                         style_layers=style_layers)
 
@@ -270,11 +272,12 @@ def main():
     parser.add_argument('emotion', help="emotion to transfer")
     parser.add_argument('output_image', help="output image filename")
     parser.add_argument('--style-layer', action='append', help="use style layer")
+    parser.add_argument('--gramdir', default=None, help="directory to file the gram files");
     args = parser.parse_args()
 
     if args.style_layer is None:
         args.style_layer = style_layers_default
-    image = transfer_emotion(args.input_image, args.emotion, args.style_layer)
+    image = transfer_emotion(args.input_image, args.emotion, args.style_layer, args.gramdir)
 
     image = image.cpu().clone()
     image = image.squeeze(0)

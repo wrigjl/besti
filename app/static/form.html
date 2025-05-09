@@ -1,0 +1,93 @@
+
+<html>
+  <head><title>Emotion and Style Transfer</title></head>
+
+  <body>
+    <h1>Emotion and Style Transfer</h1>
+    <p>This project is attempt to transfer style and/or emotion to an image.
+      Several different techniques are available. Feel free to jump around and
+      try them all.</p>
+
+    <p><ul>
+      <li><a href="#gramxfer">Emotion Transfer using Averaged Gram Matrices</a></li>
+      <li><a href="#fgmsxfer">Emotion Transfer using FGSM</a></li>
+      <li><a href="#stylexfer">Style Transfer</a></li>
+    </ul></p>
+
+    <hr>
+    <h2><a id="#gramxfer">Emotion Transfer Using Averaged Gram Matrices</a></h2>
+
+    <form action="/transfer-gram" method="POST" enctype="multipart/form-data">
+      <b>Content Image: <input name="content" type="file" /></b><br/>
+      <b>Emotion:</b>
+      <select name="emotion" id="emotion">
+        <option value="disgust">disgust</option>
+        <option value="fear">fear</option>
+        <option value="happiness">happiness</option>
+        <option value="love">love</option>
+        <option value="sadness">sadness</option>
+        <option value="surprise">surprise</option>
+        <option value="violence">violence</option>
+      </select><br/>
+      <input type="submit" name="doit" />
+    </form>
+
+    <hr>
+    <h2><a id="#fgmsxfer">Emotion Transfer Using FGMS</a></h2>
+
+    <form action="/transfer-fgms" method="POST" enctype="multipart/form-data">
+      <b>Content Image: <input name="content" type="file" /></b><br/>
+      <b>Emotion:</b>
+      <select name="emotion" id="emotion">
+        <option value="disgust">disgust</option>
+        <option value="fear">fear</option>
+        <option value="happiness">happiness</option>
+        <option value="love">love</option>
+        <option value="sadness">sadness</option>
+        <option value="surprise">surprise</option>
+        <option value="violence">violence</option>
+      </select><br/>
+      <b>Method:</b>
+      <select name="method" id="method">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select><br/>
+      <b>Steps:</b>
+      <input type="text" name="steps" id="steps" value="20" /><br/>
+      <b>EPS:</b>
+      <input type="text" name="eps" id="eps" value="0.3" /><br/>
+      <input type="submit" name="doit" />
+    </form>
+
+    <hr>
+
+    <h2><a id="#stylexfer">Style Transfer</a></h2>
+    <form action="/transfer" method="POST" enctype="multipart/form-data">
+      <b>Style Reference: <input name="style" type="file" /></b><br/>
+      <b>Content Image: <input name="content" type="file" /></b><br/>
+      <input type="submit" name="doit" />
+    </form>
+
+    <h2>Style References</h2>
+    <table border="1">
+      <tr>
+      <td>Mondrian</td>
+      <td><img src="/static/mondrian.jpg" /></td>
+      </tr>
+      <tr>
+      <td>Dali</td>
+      <td><img src="/static/dali.jpg" /></td>
+      </tr>
+      <tr>
+      <td>Picasso</td>
+      <td><img src="/static/picasso.jpg" /></td>
+      </tr>
+      <tr>
+      <td>Van Gogh</td>
+      <td><img src="/static/vangogh.jpg" /></td>
+      </tr>
+    </table>
+
+  </body>
+</html>

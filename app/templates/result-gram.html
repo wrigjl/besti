@@ -1,0 +1,21 @@
+<!doctype html>
+<title>Style Transfer Result</title>
+<body>
+
+  <p><table border="0">
+    <tr>
+      <th>Content</th>
+      <th>Emotion</th>
+    </tr>
+    <tr>
+      <td><img src="{{ contentimage }}" /></td>
+      <td>{{ emotion }}</td>
+    </tr>
+    <tr><th colspan="2">Result</th></tr>
+    <tr><th colspan="2"><img src="{{ outputimage }}" /></tr>
+  </table></p>
+  <pre>
+{{ output|safe }}
+  </pre>
+
+</body>
